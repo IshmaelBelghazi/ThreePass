@@ -1,0 +1,8 @@
+Makefile
+test_custom
+^.*\.Rproj$
+^.*\~$
+^checks$
+^scripts$
+^\.travis\.yml$
+^misc$

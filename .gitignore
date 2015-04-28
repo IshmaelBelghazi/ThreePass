@@ -1,0 +1,12 @@
+*~
+\#*\#
+.\#*
+.RData
+.Rhistory
+*.o
+*.so
+TAGS
+GTAGS
+GRTAGS
+GPATH
+.DS_Store

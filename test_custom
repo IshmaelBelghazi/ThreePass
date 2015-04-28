@@ -1,0 +1,64 @@
+#!/usr/bin/env Rscript
+rm(list=ls())
+## * Package setup
+library(methods, quietly=TRUE)  ## hasArgs is not loaded by default by Rscript
+library(devtools, quietly=TRUE)
+pkg_path <-  "."
+try(unload(pkg_path))
+document(pkg_path)
+load_all(pkg_path)
+test(pkg_path)
+
+
+## ** Setting problems dimensions
+T <-  2000  ## number of observations
+N <- 25  ## number of predictors
+K_f <- 1 ## Number of relevant factors
+sigma_g <- c(1.25, 1.75, 2.25, 2.75)  # Irrelevant factors variance
+                                      # coefficient. This means that the
+                                      # variance of the first irrelevant factors
+                                      # will be 1.25 greater than that of the
+                                      # relevant factors. That of the second
+                                      # 1.75, etc ...
+L <- 1 ## Number of proxies
+center <- TRUE
+scale <- TRUE
+
+## * Generating data set
+## * simulating problem
+sim <- sim_problem(T=T, N=N, K_f=K_f, sigma_g=sigma_g, L=L)
+
+## * Running Three pass regression filter with proxies
+##fit <- TPRF(sim$X, sim$y, L=L, center=center, scale=scale, fitalg=1)
+fit <- TPRF(sim$X, sim$y, Z=sim$y, center=center, scale=scale, fitalg=1)
+print(coef(fit))
+## * Manual replications
+## ** Step I time series regression
+X_manual <- sim$X
+if(center) {
+    X_mean <- apply(X_manual, 2, mean)
+    X_manual <- apply(X_manual, 2, function(X) X - X_mean)
+}
+
+if(scale) {
+    X_sd <- apply(X_manual, 2, sd)
+    X_manual <- apply(X_manual, 2, function(X) X/X_sd)
+}
+
+loadings <- apply(X_manual, 2, function(X) coef(lm(X ~ 1 + sim$y))[-1])
+## ** Step II ctross sectional regression
+factors <- apply(X_manual, 1, function(X) coef(lm(X ~ 1 + loadings))[-1])
+## ** Step III predictive regression
+manual_fit <- lm(sim$y ~ 1 + factors)
+print(summary(manual_fit))
+
+print("Factors - manually estimated factors RMSE")
+print(sqrt(mean((sim$factors$f - factors)^2)))
+print("Factors - t3prf estimated factors RMSE")
+print(sqrt(mean((sim$factors$f - fit$factors[, -1])^2)))
+
+
+print("Y - Y_hat_manual RMSE")
+print(sqrt(mean((sim$y - fitted(manual_fit))^2)))
+print("Y - Y_hat_t3prf RMSE")
+print(sqrt(mean((sim$y - fitted(fit))^2)))
