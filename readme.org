@@ -1,4 +1,4 @@
-#+TITLE: T3PRF - Three Pass Regression Filter for R
+#+TITLE: T3PRF: Three Pass Regression Filter for R
 #+AUTHOR: Mohamed Ishmael Diwan Belghazi
 #+EMAIL: ishmael.belghazi@gmail.com
 * Status
@@ -28,6 +28,9 @@ target.
 Kelly, Bryan T. and Pruitt, Seth, The Three-Pass Regression Filter: A New Approach to Forecasting Using Many Predictors (May 2014). Fama-Miller Working Paper; Chicago Booth Research Paper No. 11-19. Available at SSRN: http://ssrn.com/abstract=1868703 or http://dx.doi.org/10.2139/ssrn.1868703
 
 * TODOS
+**** TODO Complete Documentation
+**** TODO Add examples
+**** TODO Add vignette
 **** TODO Improve testing
 **** TODO Improve handling of missing values
 **** TODO Move from RcppEigen to native .Call with LAPACK
