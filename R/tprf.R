@@ -2,7 +2,6 @@
 ##' Three Pass Regression Filter
 ##'
 ##' Fits the three pass regression filter
-##' @usage TPRF(X, y, Z=NULL, L)
 ##' @title Three Pass Regression filter
 ##' @param X Observations (typically lagged)
 ##' @param y Targets
