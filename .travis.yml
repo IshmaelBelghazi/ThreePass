@@ -3,6 +3,7 @@
 language: r
 
 warnings_are_errors: false
+
 r_build_args: "--no-build-vignettes --no-manual"
 r_check_args: "--no-build-vignettes --no-manual --as-cran"
 
@@ -10,6 +11,7 @@ r_packages:
  - devtools
  - testthat
  - RcppEigen
+
 r_github_packages:
  - hadley/devtools
  - hadley/testthat
