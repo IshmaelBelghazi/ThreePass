@@ -7,3 +7,4 @@ test_custom
 ^scripts$
 ^\.travis\.yml$
 ^misc$
+readme.org

@@ -4,7 +4,8 @@
 \alias{TPRF}
 \title{Three Pass Regression filter}
 \usage{
-TPRF(X, y, Z=NULL, L)
+TPRF(X, y, Z = NULL, L = NULL, center = TRUE, scale = TRUE,
+  fitalg = 2)
 }
 \arguments{
 \item{X}{Observations (typically lagged)}
