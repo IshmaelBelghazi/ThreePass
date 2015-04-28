@@ -1,4 +1,4 @@
 library(testthat)
-library(Ipsol3PRF)
+library(T3PRF)
 
-test_check("Ipsol3PRF")
+test_check("T3PRF")
