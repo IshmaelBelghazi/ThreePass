@@ -71,13 +71,13 @@ TPRF <- function(X, y, Z=NULL, L=NULL, center=TRUE, scale=TRUE, fitalg=2) {
     ## Setting proxies with intercept
     Z_intercept <- cbind(1, Z)
     loadings <- t(apply(X, 2,
-                      function(X) coef(RcppEigen::fastLmPure(Z_intercept, X,
-                                                  method=fitalg))))
+                        function(X) coef(RcppEigen::fastLmPure(Z_intercept, X,
+                                                               method=fitalg))))
     ## Step II Cross section regression
     loadings_intercept <- cbind(1, loadings[, -1, drop=FALSE])
     factors <- t(apply(X, 1,
-                     function(X) coef(RcppEigen::fastLmPure(loadings_intercept, X,
-                                                 method=fitalg))))
+                       function(X) coef(RcppEigen::fastLmPure(loadings_intercept, X,
+                                                              method=fitalg))))
         ## Should Factors be scaled? Seems that factor are unique up to scaling ...
     ##factors <- scale(factors)
     ## Step III predictive regression

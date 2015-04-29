@@ -29,9 +29,10 @@ Kelly, Bryan T. and Pruitt, Seth, The Three-Pass Regression Filter: A New Approa
 
 * TODOS
 **** TODO Complete Documentation
+**** TODO Add asymptotics
 **** TODO Add examples
 **** TODO Add vignette
 **** TODO Improve testing
 **** TODO Improve handling of missing values
 **** TODO Move from RcppEigen to native .Call with LAPACK
-**** TODO Add GPU support for rolling and recursive forecasts
+**** TODO Add GPU support especially for rolling and recursive forecasts

@@ -15,7 +15,7 @@
     ## Variance have to be adjusted so that the variance of each irrelevant
     ## factor is greater than the variance of the relevant factor by a the
     ## coefficients given in sigma_g
-    sigma_g <- diag(var(f) * sigma_g)
+    sigma_g <- diag(var(f[, 1]) * sigma_g)
     if (K_g > 0) {
         u_g <- matrix(rnorm(T * K_g), nrow=T, ncol=K_g) %*% sqrt(sigma_g)
         g <- matrix(0, nrow=T, ncol=K_g)
