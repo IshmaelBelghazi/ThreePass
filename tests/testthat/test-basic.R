@@ -24,3 +24,8 @@ test_that("Testing auto-proxies selection procedure", {
 })
 
 ## --------------------------------------------------------------
+test_that("Testing missing values handling when there is none", {
+    expect_equal(coef(TPRF(X, y, L=1, check_missing=FALSE)),
+                 coef(TPRF(X, y, L=1, check_missing=TRUE)),
+                 tolerance=tol, scale=1)
+})

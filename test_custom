@@ -10,8 +10,8 @@ load_all(pkg_path)
 test(pkg_path)
 
 ## ** Setting problems dimensions
-T <-  2000  ## number of observations
-N <- 25  ## number of predictors
+T <-  200  ## number of observations
+N <- 200  ## number of predictors
 K_f <- 1 ## Number of relevant factors
 sigma_g <- c(1.25, 1.75, 2.25, 2.75)  # Irrelevant factors variance
                                       # coefficient. This means that the
@@ -23,12 +23,18 @@ L <- K_f ## Number of proxies
 center <- TRUE
 scale <- TRUE
 
+check_missing <- TRUE
+
 ## * Generating data set
 ## * simulating problem
 sim <- sim_problem(T=T, N=N, K_f=K_f, sigma_g=sigma_g, L=L)
 
+## * Forming infeasible best forecast
+y_inf <- sim$beta_0 + do.call(cbind, sim$factors) %*% sim$beta
 ## * Running Three pass regression filter with proxies
-fit <- TPRF(sim$X, sim$y, L=L, center=center, scale=scale, fitalg=1)
+fit <- TPRF(sim$X, sim$y, L=L, center=center, scale=scale,
+            check_missing=check_missing,
+            fitalg=2)
 print(coef(fit))
 
 ## ## * Manual replications
@@ -53,11 +59,11 @@ print(coef(fit))
 
 ## print("Factors - manually estimated factors RMSE")
 ## print(sqrt(mean((sim$factors$f - factors)^2)))
-## print("Factors - t3prf estimated factors RMSE")
-## print(sqrt(mean((sim$factors$f - fit$factors[, -1])^2)))
+print("Factors - t3prf estimated factors RMSE")
+print(sqrt(mean((sim$factors$f - fit$factors[, -1])^2)))
 
 
-print("Y - Y_hat_manual RMSE")
-print(sqrt(mean((sim$y - fitted(manual_fit))^2)))
+## print("Y - Y_hat_manual RMSE")
+## print(sqrt(mean((sim$y - fitted(manual_fit))^2)))
 print("Y - Y_hat_t3prf RMSE")
-print(sqrt(mean((sim$y - fitted(fit))^2)))
+print(sqrt(mean((y_inf - fitted(fit))^2)))

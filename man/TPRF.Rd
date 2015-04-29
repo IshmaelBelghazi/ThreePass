@@ -5,7 +5,7 @@
 \title{Three Pass Regression filter}
 \usage{
 TPRF(X, y, Z = NULL, L = NULL, center = TRUE, scale = TRUE,
-  fitalg = 2)
+  check_missing = FALSE, fitalg = 2)
 }
 \arguments{
 \item{X}{Observations (typically lagged)}
@@ -19,6 +19,8 @@ TPRF(X, y, Z = NULL, L = NULL, center = TRUE, scale = TRUE,
 \item{center}{Center the data?}
 
 \item{scale}{Scale the data}
+
+\item{check_missing}{Checks for missing values}
 
 \item{fitalg}{OLS fit algorithm}
 }
