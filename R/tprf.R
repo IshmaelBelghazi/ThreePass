@@ -1,3 +1,6 @@
+#############################################
+## Three Pass Regression Filter Estimators ##
+#############################################
 ## * Three pass regression filter
 ##' Three Pass Regression Filter
 ##'
@@ -16,11 +19,15 @@
 ##' @author Mohamed Ishmael Diwan Belghazi
 ##' @export
 TPRF <- function(X, y, Z=NULL, L=NULL,
-                 center=TRUE, scale=TRUE,
+                 center=FALSE, scale=TRUE,
                  check_missing=FALSE,
                  closed_form=FALSE,
                  fitalg=2) {
 
+    ## y should be univariate
+    if (NCOL(y) != 1) {
+        stop("y should be univariate")
+    }
     ## Both proxies Z and the number automatic proxies cannot be unspecified
     if(is.null(Z) && is.null(L)) {
         stop("please either provide proxies or choose a number of automatic proxies to build")
@@ -40,15 +47,15 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
     ## Scaling and centering
     ## Should be parallelized, moved to C, or maybe use matrixstats
     if(center) {
-        X_mean <- apply(X, 2, function(X) mean(X, na.rm=TRUE))
-        X <- apply(X, 2, function(X) X - X_mean)
+        X_mean <- apply(X, 2, function(col) mean(col, na.rm=TRUE))
+        X <- t(apply(X, 1, function(row) row - X_mean))
     } else {
         X_mean <- NULL
     }
 
     if (scale) {
-        X_sd <- apply(X, 2, function(X) sd(X, na.rm=TRUE))
-        X <- apply(X, 2, function(X) X/X_sd)
+        X_sd <- apply(X, 2, function(col) sd(col, na.rm=TRUE))
+        X <- t(apply(X, 1, function(row) row/X_sd))
     } else {
         X_sd <- NULL
     }
@@ -77,16 +84,23 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
                    L=L,
                    loadings=fit$loadings,
                    factors=fit$factors,
+                   closed_form=closed_form,
                    alpha_hat=fit$alpha_hat,
                    centered=center,
                    means=X_mean,
                    scaled=scale,
-                   scales=X_sd),
+                   scales=X_sd
+                   ),
               class="t3prf")
 }
 
 ##' @export
 .tprf_fit <- function(X, y, Z, valid_idx, closed_form, fitalg=2) {
+
+    if(!is.matrix(X)) X <- as.matrix(X)
+    if(!is.matrix(y)) y <- as.matrix(y)
+    if(!is.matrix(Z)) Z <- as.matrix(Z)
+
     if(closed_form) {
         return(.tprf_fit_closed(X, y, Z))
     } else {
@@ -97,9 +111,6 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
 ##' @export
 .tprf_fit_iter <- function(X, y, Z, valid_idx, fitalg=2) {
 
-    if(!is.matrix(X)) X <- as.matrix(X)
-    if(!is.matrix(y)) y <- as.matrix(y)
-    if(!is.matrix(Z)) Z <- as.matrix(Z)
 
     if(is.null(valid_idx)) {
         valid_idx <- matrix(TRUE, nrow=NROW(X), ncol=NCOL(X))
@@ -123,7 +134,6 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
     factors <- mat.or.vec(nr=NROW(y), nc=NCOL(Z) + 1)
 
     for (i in 1:NROW(factors)) {
-
         idx_i <- valid_idx[i, ]
         factors[i, ] <- coef(RcppEigen::fastLmPure(loadings_intercept[idx_i, ],
                                                    X[i, idx_i],
@@ -163,5 +173,6 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
     fit <- list()
     fit$alpha_hat <- alpha_hat
     fit$fitted.values <- as.vector(y_hat)
+    fit$residuals <- as.vector(y - y_hat)
     return(fit)
 }

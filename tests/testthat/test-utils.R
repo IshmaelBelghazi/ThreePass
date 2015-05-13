@@ -1,4 +1,4 @@
-context("Utility functions check")
+context("Utility functions")
 ## Setting test specific variables
 tol <- 1e-6
 ## simulates white noise
@@ -25,8 +25,10 @@ test_that("checks NA handling function", {
     n_corrupted <- sample(floor(T/2), 1)
     y_cor <- corrupt(y, NA, n_corrupted=n_corrupted)
     X_cor <- corrupt(X, NA, n_corrupted=n_corrupted)
-    expect_error(.get_valid_idx(X, y_cor, y))
-    expect_error(.get_valid_idx(X, y, y_cor))
+    expect_error(.get_valid_idx(X, y_cor, y),
+                 "one or missing values in target. aborting.")
+    expect_error(.get_valid_idx(X, y, y_cor),
+                 "one or more missing values in proxies. aborting.")
     expect_equal(sum(.get_valid_idx(X_cor, y, y)), length(X_cor) - n_corrupted)
 }
           )

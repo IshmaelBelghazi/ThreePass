@@ -175,9 +175,12 @@ check:
 	@echo "devtools::check(check_dir='./checks/')" | $(R_COMMAND)
 ## ** debug
 valgrind:
-	R -d valgrind --vanilla < test_custom
+	@echo R -d valgrind --vanilla < test_custom
 cudamemcheck:
-	cuda-memcheck ./test_custom
+	@echo cuda-memcheck ./test_custom
+## ** Code Coverage
+coverage:
+	@echo "library(covr);cov <- package_coverage();shine(cov)" | $(R_COMMAND)
 ## ** Lint
 ## *** R lint
 lint/R:

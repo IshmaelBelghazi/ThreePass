@@ -4,7 +4,7 @@
 \alias{TPRF}
 \title{Three Pass Regression filter}
 \usage{
-TPRF(X, y, Z = NULL, L = NULL, center = TRUE, scale = TRUE,
+TPRF(X, y, Z = NULL, L = NULL, center = FALSE, scale = TRUE,
   check_missing = FALSE, closed_form = FALSE, fitalg = 2)
 }
 \arguments{

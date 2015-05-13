@@ -7,7 +7,7 @@ pkg_path <-  "."
 try(unload(pkg_path))
 document(pkg_path)
 load_all(pkg_path)
-test(pkg_path)
+##test(pkg_path)
 
 ## ** Setting problems dimensions
 T <-  200  ## number of observations

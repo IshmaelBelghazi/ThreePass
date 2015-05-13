@@ -1,6 +1,6 @@
 context("Basic Sanity Checks")
 ## Setting test specific variables
-tol <- 1e-6
+tol <- 1e-3
 ## simulates white noise
 ## * Simulating artificial problem
 ## Time steps
@@ -14,16 +14,14 @@ L <- 1
 sim <- sim_problem(T, N, K_f)
 X <- sim$X
 y <- sim$y
-
-
 ## --------------------------------------------------------------
-test_that("auto-proxies selection procedure", {
+test_that("auto-proxies selection procedure is consitent", {
     expect_equal(coef(TPRF(X, y, L=1)), coef(TPRF(X, y, y)),
                  tolerance=tol, scale=1)
 })
 
 ## --------------------------------------------------------------
-test_that("missing values handling when there is none", {
+test_that("handling of missing value when there is none does nothing", {
     expect_equal(coef(TPRF(X, y, L=1, check_missing=FALSE)),
                  coef(TPRF(X, y, L=1, check_missing=TRUE)),
                  tolerance=tol, scale=1)

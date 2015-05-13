@@ -1,4 +1,7 @@
-## * Handles missing values
+#######################
+## Various Utilities ##
+#######################
+## * Missing Values Handling
 ##' @export
 .get_valid_idx <- function(predictors, target, proxies) {
 
@@ -15,10 +18,12 @@
 
     return(pred_valid_idx)
 }
+## * Array Corruption
 ##' @export
 corrupt <- function(mat, pollutant,
                     corrupt_prob=1,
                     n_corrupted=floor((NROW(mat) * NCOL(mat))/2)) {
+
     if(n_corrupted <= 0) {
         stop("number of entries to corrupt has to be positive")
     }

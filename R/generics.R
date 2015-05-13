@@ -1,3 +1,6 @@
+######################
+## Methods Generics ##
+######################
 ## * Various getters
 ##' @export
 coef.t3prf <- function(object, ...) coef(object$fit)
@@ -10,23 +13,28 @@ residuals.t3prf <- function(object, ...) resid(object$fit)
 predict.t3prf <- function(object, newdata, fitalg=2, ...) {
     ## Observations should be arrayed in rows
     ## Step I
-    loadings_intercept <- cbind(1, object$loadings)
+    if (is.vector(newdata)) newdata <- matrix(newdata, nrow=1)
+
     if (object$scaled) {
-        newdata <- apply(newdata, 1, function(X) X/object$scales)
+        newdata <- t(apply(newdata, 1, function(row) row/object$scales))
     }
-    ##
-    newdata_factors<- apply(newdata, 1,
-                            function(X) {
-                                ## Omitting missing values
-                                valid_idx <- which(!is.na(X))
-                                coef(RcppEigen::fastLmPure(loadings_intercept[valid_idx, ],
-                                                           X[valid_idx],
-                                                           method=fitalg))[-1]
-                            })
 
+    if (object$closed_form) {
+        stop("forecasting not supported for closed form estimator")
+    } else {
+        loadings_intercept <- cbind(1, object$loadings[, -1])
+        newdata_factors <- apply(newdata, 1,
+                                 function(row) {
+                                     ## Omitting missing values
+                                     valid_idx <- !is.na(row)
+                                     coef(RcppEigen::fastLmPure(loadings_intercept[valid_idx, ],
+                                                                row[valid_idx],
+                                                                method=fitalg))[-1]
+                                 })
 
-    newdata_factors <- matrix(newdata_factors, ncol=object$L, byrow=TRUE)
-    ## Adding intercept to newly derived factors
-    newdata_factors <- cbind(1, newdata_factors)
-    newdata_factors %*% coef(object)
+        newdata_factors <- matrix(newdata_factors, ncol=object$L, byrow=TRUE)
+        ## Adding intercept to newly derived factors
+        newdata_factors <- cbind(1, newdata_factors)
+        return(newdata_factors %*% coef(object))
+    }
 }

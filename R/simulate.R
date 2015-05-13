@@ -1,3 +1,6 @@
+###################################################
+## Three Pass Regression Filter Model Simulation ##
+###################################################
 ##' @export
 .sim_factors <- function(T, K_f=1, rho_f=0, rho_g=0,
                         sigma_g=c(1.25, 1.75, 2.25, 2.75)) {
@@ -27,6 +30,7 @@
         g <- NULL
     }
     ## * returning factors
+
     return(list(f=f, g=g))
 }
 ##' @export
@@ -36,6 +40,7 @@
     ## * Generating innovations
     u_y <- matrix(rnorm(T), nrow=T, ncol=1)
     y <- beta_0 + F %*% beta + sigma_y * u_y
+
     return(y)
 }
 ##' @export
@@ -48,12 +53,9 @@
 
     return(X)
 }
-
 ##' export
 .sim_proxies <- function(L, factors, lambda_0, lambda) {
-
     .sim_observations(L, factors, lambda_0, lambda)
-
 }
 ##' @export
 sim_problem <- function(T, N, K_f, sigma_g=c(1.25, 1.75, 2.25, 2.75), L=NULL, sigma_y=1) {
@@ -72,7 +74,6 @@ sim_problem <- function(T, N, K_f, sigma_g=c(1.25, 1.75, 2.25, 2.75), L=NULL, si
         Z <- .sim_proxies(L, factors, lambda_0, lambda)
     } else {
         lambda_0 <- lambda <- Z <- NULL
-
     }
     ## Simulate targets
     beta_0 <- runif(1, -1, 1)
