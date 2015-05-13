@@ -8,31 +8,42 @@ T <- 100
 ## Number of predictors
 N <- 25
 ## --------------------------------------------------------------
-test_that("closed form/iterative estimations are consitent (auto-proxies)", {
+test_that("closed form/iterative 3PRF estimations are consitent (auto-proxies)", {
     for (L in 1:2) {
         K_f <- L
         sim <- sim_problem(T, N, K_f, sigma_g=NULL)
         X <- sim$X
         y <- sim$y
-        X <- apply(X, 2, function(X) X/sd(X))
-        expect_equal(fitted(TPRF(X, y, L=L, closed_form=FALSE)),
-                     fitted(TPRF(X, y, L=L, closed_form=TRUE)),
+        expect_equal(fitted(TPRF(X, y, L=L, pls=FALSE, closed_form=FALSE)),
+                     fitted(TPRF(X, y, L=L, pls=FALSE, closed_form=TRUE)),
                      tolerance=tol, scale=1)
     }
 }
           )
 ## --------------------------------------------------------------
-test_that("closed form/iterative estimation are consistent (generated proxies)", {
+test_that("closed form/iterative 3PRF estimation are consistent (generated proxies)", {
     for (L in 1:2) {
         K_f <- L
         sim <- sim_problem(T, N, K_f, L=L, sigma_g=NULL)
         X <- sim$X
         y <- sim$y
         Z <- sim$Z
-        X <- apply(X, 2, function(X) X/sd(X))
-        expect_equal(fitted(TPRF(X, y, Z=Z, closed_form=FALSE)),
-                     fitted(TPRF(X, y, Z=Z, closed_form=TRUE)),
+        expect_equal(fitted(TPRF(X, y, Z=Z, pls=FALSE, closed_form=FALSE)),
+                     fitted(TPRF(X, y, Z=Z, pls=FALSE, closed_form=TRUE)),
                      tolerance=tol, scale=1)
     }
+}
+          )
+## --------------------------------------------------------------
+test_that("closed form/iterative PLS estimation are consistent", {
+
+    K_f <- 1
+    sim <- sim_problem(T, N, K_f, L=1, sigma_g=NULL)
+    X <- sim$X
+    y <- sim$y
+    Z <- sim$Z
+    expect_equal(fitted(TPRF(X, y, L=1, pls=TRUE, closed_form=FALSE)),
+                 fitted(TPRF(X, y, L=1, pls=TRUE, closed_form=TRUE)),
+                 tolerance=tol, scale=1)
 }
           )

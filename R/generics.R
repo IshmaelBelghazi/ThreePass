@@ -16,19 +16,21 @@ predict.t3prf <- function(object, newdata, fitalg=2, ...) {
     ## Step I
     if (is.vector(newdata)) newdata <- matrix(newdata, nrow=1)
 
-    if (object$scaled) {
+    if (object$scaled) {  ## Object is always scaled in pls fit
         newdata <- t(apply(newdata, 1, function(row) row/object$scales))
     }
 
     if (object$closed_form) {
         stop("forecasting not supported for closed form estimator")
     } else {
-        loadings_intercept <- cbind(1, object$loadings[, -1])
+
+        loadings_reg <- object$loadings[, -1]
+        if(!object$pls) loadings_reg <- cbind(1, loadings_reg)
         newdata_factors <- apply(newdata, 1,
                                  function(row) {
                                      ## Omitting missing values
                                      valid_idx <- !is.na(row)
-                                     coef(RcppEigen::fastLmPure(loadings_intercept[valid_idx, ],
+                                     coef(RcppEigen::fastLmPure(loadings_reg[valid_idx, , drop=FALSE],
                                                                 row[valid_idx],
                                                                 method=fitalg))[-1]
                                  })

@@ -7,7 +7,7 @@ pkg_path <-  "."
 try(unload(pkg_path))
 document(pkg_path)
 load_all(pkg_path)
-##test(pkg_path)
+test(pkg_path)
 
 ## ** Setting problems dimensions
 T <-  200  ## number of observations
@@ -31,9 +31,9 @@ sim <- sim_problem(T=T, N=N, K_f=K_f, sigma_g=sigma_g, L=L)
 
 ## * Forming infeasible best forecast
 y_inf <- sim$beta_0 + do.call(cbind, sim$factors) %*% sim$beta
-## * Running Three pass regression filter with proxies
-fit <- TPRF(sim$X, sim$y, L=L, center=center, scale=scale,
-            check_missing=check_missing,
+## * Running Partial least squares
+fit <- TPRF(sim$X, sim$y, L=L, pls=TRUE, center=center, scale=scale,
+            check_missing=check_missing, closed_form=FALSE,
             fitalg=2)
 print(coef(fit))
 

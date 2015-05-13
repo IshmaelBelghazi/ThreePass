@@ -10,6 +10,7 @@
 ##' @param y Targets
 ##' @param Z Proxies
 ##' @param L Scalar. Number of proxies if Z is NULL
+##' @param pls Partial Least Squares
 ##' @param center Center the data?
 ##' @param scale Scale the data
 ##' @param check_missing Checks for missing values
@@ -18,7 +19,7 @@
 ##' @return TPRF object
 ##' @author Mohamed Ishmael Diwan Belghazi
 ##' @export
-TPRF <- function(X, y, Z=NULL, L=NULL,
+TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
                  center=FALSE, scale=TRUE,
                  check_missing=FALSE,
                  closed_form=FALSE,
@@ -28,6 +29,14 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
     if (NCOL(y) != 1) {
         stop("y should be univariate")
     }
+    ## partial least squares is equivalent to TPRF with no intercept,
+    ## standardized predictors and L=1
+    if (pls) {
+        center <- TRUE
+        scale <- TRUE
+        if(closed_form) L <- 1
+    }
+
     ## Both proxies Z and the number automatic proxies cannot be unspecified
     if(is.null(Z) && is.null(L)) {
         stop("please either provide proxies or choose a number of automatic proxies to build")
@@ -67,9 +76,8 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
         k <- 1
         while(k < L) {
             k <- k + 1
-            r[, k] <- resid(.tprf_fit(X, y, r[, k - 1],
-                                      valid_idx=valid_idx,
-                                      closed_form=closed_form,
+            r[, k] <- resid(.tprf_fit(X, y, r[, k - 1], valid_idx=valid_idx,
+                                      pls=pls, closed_form=closed_form,
                                       fitalg=fitalg))
         }
         Z <- r
@@ -77,10 +85,12 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
 
     ## Running three pass regression filter
     fit <- .tprf_fit(X, y, Z, valid_idx=valid_idx,
-                     closed_form=closed_form, fitalg=fitalg)
+                     pls=pls, closed_form=closed_form,
+                     fitalg=fitalg)
 
     ## Creating TPRF object
     structure(list(fit=fit,
+                   pls=pls,
                    L=L,
                    loadings=fit$loadings,
                    factors=fit$factors,
@@ -95,21 +105,21 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
 }
 
 ##' @export
-.tprf_fit <- function(X, y, Z, valid_idx, closed_form, fitalg=2) {
+.tprf_fit <- function(X, y, Z, valid_idx, pls, closed_form, fitalg=2) {
 
     if(!is.matrix(X)) X <- as.matrix(X)
     if(!is.matrix(y)) y <- as.matrix(y)
     if(!is.matrix(Z)) Z <- as.matrix(Z)
 
     if(closed_form) {
-        return(.tprf_fit_closed(X, y, Z))
+        return(.tprf_fit_closed(X, y, Z, pls))
     } else {
-        return(.tprf_fit_iter(X, y, Z, valid_idx=valid_idx, fitalg=fitalg))
+        return(.tprf_fit_iter(X, y, Z, valid_idx=valid_idx, pls=pls, fitalg=fitalg))
     }
 }
 
 ##' @export
-.tprf_fit_iter <- function(X, y, Z, valid_idx, fitalg=2) {
+.tprf_fit_iter <- function(X, y, Z, valid_idx, pls, fitalg=2) {
 
 
     if(is.null(valid_idx)) {
@@ -118,24 +128,25 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
 
     ## Step 1 Time series regression
     ## Setting proxies with intercept
-    Z_intercept <- cbind(1, Z)
-
+    Z_reg <- if(pls) Z else cbind(1, Z)
+    ## Preallcating loadings
     loadings <- mat.or.vec(nr=NCOL(X), nc=NCOL(Z) + 1)
 
     for (j in 1:NCOL(X)) {
         idx_j <- valid_idx[, j]
-        loadings[j, ] <- coef(RcppEigen::fastLmPure(Z_intercept[idx_j, ],
+        loadings[j, ] <- coef(RcppEigen::fastLmPure(Z_reg[idx_j, , drop=FALSE],
                                                     X[idx_j, j],
                                                     method=fitalg))
     }
 
     ## Step II Cross section regression
-    loadings_intercept <- cbind(1, loadings[, -1, drop=FALSE])
+    loadings_reg <- loadings[, -1, drop=FALSE]
+    if(!pls) loadings_reg <- cbind(1, loadings_reg)
     factors <- mat.or.vec(nr=NROW(y), nc=NCOL(Z) + 1)
 
     for (i in 1:NROW(factors)) {
         idx_i <- valid_idx[i, ]
-        factors[i, ] <- coef(RcppEigen::fastLmPure(loadings_intercept[idx_i, ],
+        factors[i, ] <- coef(RcppEigen::fastLmPure(loadings_reg[idx_i, , drop=FALSE],
                                                    X[i, idx_i],
                                                    method=fitalg))
     }
@@ -151,24 +162,36 @@ TPRF <- function(X, y, Z=NULL, L=NULL,
 }
 
 ##' @export
-.tprf_fit_closed <- function(X, y, Z) {
-    J <- function(len) {
-        diag(rep(1, len)) - 1/len * matrix(1, nrow=len, ncol=len)
+.tprf_fit_closed <- function(X, y, Z, pls) {
+
+    if (pls) {
+        XX <- X %*% t(X)
+        part1 <- XX %*% y
+        part2 <- solve(t(y) %*% XX %*% XX %*% y)
+        part3 <- t(y) %*% XX %*% y
+        y_hat <- mean(y) + part1 %*% part2 %*% part3  ## Should y be demeaned?
+        alpha_hat <- NULL  ## No alpha_hat in pls
+
+    } else {
+        J <- function(len) {
+            diag(rep(1, len)) - 1/len * matrix(1, nrow=len, ncol=len)
+        }
+        T <- NROW(X)
+        N <- NCOL(X)
+
+        W_XZ <- J(N) %*% t(X) %*% J(T) %*% Z
+        S_XX <- t(X) %*% J(T) %*% X
+        S_Xy <- t(X) %*% J(T) %*% y
+
+        alpha_hat <- W_XZ %*% solve(t(W_XZ) %*% S_XX %*% W_XZ) %*% t(W_XZ) %*% S_Xy
+        y_hat <- mean(y) + J(T) %*% X %*% alpha_hat
+
+        ## part1 <- J(T) %*% X %*% W_XZ
+        ## part2 <- solve(t(W_XZ) %*% S_XX %*% W_XZ)
+        ## part3 <- t(W_XZ) %*% S_Xy
+        ## y_hat <- mean(y) + part1 %*% part2 %*% part3
+
     }
-    T <- NROW(X)
-    N <- NCOL(X)
-
-    W_XZ <- J(N) %*% t(X) %*% J(T) %*% Z
-    S_XX <- t(X) %*% J(T) %*% X
-    S_Xy <- t(X) %*% J(T) %*% y
-
-    alpha_hat <- W_XZ %*% solve(t(W_XZ) %*% S_XX %*% W_XZ) %*% t(W_XZ) %*% S_Xy
-    y_hat <- mean(y) + J(T) %*% X %*% alpha_hat
-
-    ## part1 <- J(T) %*% X %*% W_XZ
-    ## part2 <- solve(t(W_XZ) %*% S_XX %*% W_XZ)
-    ## part3 <- t(W_XZ) %*% S_Xy
-    ## y_hat <- mean(y) + part1 %*% part2 %*% part3
 
     fit <- list()
     fit$alpha_hat <- alpha_hat

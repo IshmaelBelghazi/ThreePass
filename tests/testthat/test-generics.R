@@ -25,18 +25,17 @@ test_that("coef generic is consistent", {
                  tolerance=tol, scale=1)
 })
 ## --------------------------------------------------------------
-test_that(" fitted generic is consistent", {
+test_that("fitted generic is consistent", {
     expect_equal(fitted(fit), fit$fit$fitted.values,
                  tolerance=tol, scale=1)
 })
 ## --------------------------------------------------------------
-test_that(" resid generic is consistent", {
+test_that("resid generic is consistent", {
     expect_equal(resid(fit), y[1:split_idx] - fitted(fit),
                  tolerance=tol, scale=1)
 })
 ## --------------------------------------------------------------
 test_that("predict generic is consistent", {
-
     if (fit$scaled) newdata_manual <- t(apply(newdata, 1,
                                               function(row) row/fit$scales))
     newfactor <- apply(newdata_manual, 1, function(row){

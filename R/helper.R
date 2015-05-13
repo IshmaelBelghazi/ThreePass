@@ -3,13 +3,10 @@
 ##########################################
 ## * Recursive predictions
 ##' @export
-predict_recursive <- function(X, y, Z=NULL, L=NULL, train_periods=floor(NROW(X)/2),
-                              check_missing=FALSE,
+predict_recursive <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
+                              train_periods=floor(NROW(X)/2), check_missing=FALSE,
                               center=FALSE, scale=TRUE, fitalg=2){
-    ## Both proxies Z and the number automatic proxies cannot be unspecified
-    if(is.null(Z) && is.null(L)) {
-        stop("please either provide proxies or choose a number of automatic proxies to build")
-    }
+
     forecasts <- matrix(NA, nrow=NROW(X), ncol=1)
     oos_range <- train_periods:(NROW(X) - 1)
 
@@ -19,7 +16,7 @@ predict_recursive <- function(X, y, Z=NULL, L=NULL, train_periods=floor(NROW(X)/
         y_i <- y[train_range]
         Z_i <- if(is.null(Z)) NULL else Z[train_range, ]
 
-        rec_fit <- TPRF(X_i, y_i, Z_i, L, center=center, scale=scale,
+        rec_fit <- TPRF(X_i, y_i, Z_i, L, pls=pls, center=center, scale=scale,
                         check_missing=FALSE, fitalg=fitalg)
         newdata_i <- X[i + 1,, drop=FALSE]
 
@@ -29,13 +26,10 @@ predict_recursive <- function(X, y, Z=NULL, L=NULL, train_periods=floor(NROW(X)/
 }
 ## * Rolling predictions
 ##' @export
-predict_rolling <- function(X, y, Z=NULL, L=NULL, train_window, inc=1,
-                            max_missing=NULL, center=FALSE, scale=TRUE,
+predict_rolling <- function(X, y, Z=NULL, L=NULL, pls=FALSE, train_window,
+                            inc=1, max_missing=NULL, center=FALSE, scale=TRUE,
                             check_missing=FALSE, fitalg=2) {
-    ## Both proxies Z and the number automatic proxies cannot be unspecified
-    if(is.null(Z) && is.null(L)) {
-        stop("please either provide proxies or choose a number of automatic proxies to build")
-    }
+
     train_window <- abs(train_window)
     if (is.null(max_missing)) max_missing <- train_window
 
@@ -54,7 +48,7 @@ predict_rolling <- function(X, y, Z=NULL, L=NULL, train_window, inc=1,
         if(check_missing && (max_missing < train_window)) {
             X_i <- X_i[, (apply(X_i, 2, function(X) sum(is.na(X)))) <= max_missing]
         }
-        roll_fit <- TPRF(X_i, y_i, Z_i, L, center=center, scale=scale,
+        roll_fit <- TPRF(X_i, y_i, Z_i, L, pls=pls, center=center, scale=scale,
                          check_missing=check_missing, closed_form=FALSE,
                          fitalg=fitalg)
 

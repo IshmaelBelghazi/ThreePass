@@ -4,8 +4,8 @@
 \alias{TPRF}
 \title{Three Pass Regression filter}
 \usage{
-TPRF(X, y, Z = NULL, L = NULL, center = FALSE, scale = TRUE,
-  check_missing = FALSE, closed_form = FALSE, fitalg = 2)
+TPRF(X, y, Z = NULL, L = NULL, pls = FALSE, center = FALSE,
+  scale = TRUE, check_missing = FALSE, closed_form = FALSE, fitalg = 2)
 }
 \arguments{
 \item{X}{Observations (typically lagged)}
@@ -15,6 +15,8 @@ TPRF(X, y, Z = NULL, L = NULL, center = FALSE, scale = TRUE,
 \item{Z}{Proxies}
 
 \item{L}{Scalar. Number of proxies if Z is NULL}
+
+\item{pls}{Partial Least Squares}
 
 \item{center}{Center the data?}
 
