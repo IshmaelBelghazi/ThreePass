@@ -1,8 +1,8 @@
 Package: T3PRF
 Title: Three Pass Regression Filter for R
-Version: 0.0.0.9000
+Version: 0.1.9
 Authors@R: person("Mohamed Ishmael Diwan", "Belghazi", , "ishmael.belghazi@gmail.com", role = c("aut", "cre"))
-Description: This package implements the Kelly and Pruitt (2014) Three Pass Regression Filter for R
+Description: Implements the Kelly and Pruitt (2014) Three Pass Regression Filter for R
 Depends: R (>= 3.1.2)
 License: MIT + file LICENSE
 LazyData: true

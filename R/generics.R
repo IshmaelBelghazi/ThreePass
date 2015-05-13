@@ -1,14 +1,15 @@
 ######################
 ## Methods Generics ##
 ######################
-## * Various getters
+## * Three Pass Regression Filter
+## ** Various getters
 ##' @export
 coef.t3prf <- function(object, ...) coef(object$fit)
 ##' @export
 fitted.t3prf <- function(object, ...) fitted(object$fit)
 ##' @export
 residuals.t3prf <- function(object, ...) resid(object$fit)
-## * Prediction
+## ** Prediction
 ##' @export
 predict.t3prf <- function(object, newdata, fitalg=2, ...) {
     ## Observations should be arrayed in rows
