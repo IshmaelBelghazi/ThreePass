@@ -173,7 +173,7 @@ check/examples: document
 	@echo "devtools::run_examples()" | $(R_COMMAND)
 check:
 	@echo "devtools::check(check_dir='./checks/')" | $(R_COMMAND)
-## ** debug
+## ** Debug
 valgrind:
 	@echo R -d valgrind --vanilla < test_custom
 cudamemcheck:
