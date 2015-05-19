@@ -15,13 +15,23 @@ sim <- sim_problem(T, N, K_f)
 X <- sim$X
 y <- sim$y
 ## --------------------------------------------------------------
-test_that("corruption function", {
+test_that("corruption function is well behaved", {
     n_corrupted <- sample(floor((T * N)/2), 1)
     expect_equal(sum(is.na(corrupt(X, NA, n_corrupted=n_corrupted))), n_corrupted)
+    expect_equal(sum(is.na(corrupt(X, NA, n_corrupted=n_corrupted))),
+                 sum(is.na(corrupt(X, function(x, ...) NA, n_corrupted=n_corrupted))),
+                 tolerance=tol, scale=1)
+    expect_equal(sum(is.na(corrupt(X, NA, n_corrupted=n_corrupted))),
+                 sum(is.na(corrupt(X, function(x) NA, n_corrupted=n_corrupted))),
+                 tolerance=tol, scale=1)
+    expect_error(corrupt(X, NA, n_corrupted= -1),
+                 "number of entries to corrupt has to be positive")
+    expect_error(corrupt(X, NA, n_corrupted=length(X) + 1),
+                 "number of entries to corrupt than entries")
 }
           )
 ## --------------------------------------------------------------
-test_that("checks NA handling function", {
+test_that("NA handling function is well behaved", {
     n_corrupted <- sample(floor(T/2), 1)
     y_cor <- corrupt(y, NA, n_corrupted=n_corrupted)
     X_cor <- corrupt(X, NA, n_corrupted=n_corrupted)

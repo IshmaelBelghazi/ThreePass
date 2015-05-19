@@ -21,8 +21,3 @@ test_that("auto-proxies selection procedure is consitent", {
 })
 
 ## --------------------------------------------------------------
-test_that("handling of missing value when there is none does nothing", {
-    expect_equal(coef(TPRF(X, y, L=1, check_missing=FALSE)),
-                 coef(TPRF(X, y, L=1, check_missing=TRUE)),
-                 tolerance=tol, scale=1)
-})

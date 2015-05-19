@@ -13,7 +13,6 @@
 ##' @param pls Partial Least Squares
 ##' @param center Center the data?
 ##' @param scale Scale the data
-##' @param check_missing Checks for missing values
 ##' @param closed_form Use closed form estimation
 ##' @param fitalg OLS fit algorithm
 ##' @return TPRF object
@@ -21,7 +20,6 @@
 ##' @export
 TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
                  center=FALSE, scale=TRUE,
-                 check_missing=FALSE,
                  closed_form=FALSE,
                  fitalg=2) {
 
@@ -40,17 +38,6 @@ TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
     ## Both proxies Z and the number automatic proxies cannot be unspecified
     if(is.null(Z) && is.null(L)) {
         stop("please either provide proxies or choose a number of automatic proxies to build")
-    }
-
-    ## Missing Values not handled in closed form estimator
-    if (closed_form && check_missing) {
-        stop("missing values not handled in closed form estimator")
-    }
-
-    if (check_missing) {
-        valid_idx <- .get_valid_idx(X, y, Z)
-    } else {
-        valid_idx <- NULL
     }
 
     ## Scaling and centering
@@ -76,7 +63,7 @@ TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
         k <- 1
         while(k < L) {
             k <- k + 1
-            r[, k] <- resid(.tprf_fit(X, y, r[, k - 1], valid_idx=valid_idx,
+            r[, k] <- resid(.tprf_fit(X, y, r[, k - 1],
                                       pls=pls, closed_form=closed_form,
                                       fitalg=fitalg))
         }
@@ -84,7 +71,7 @@ TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
     }
 
     ## Running three pass regression filter
-    fit <- .tprf_fit(X, y, Z, valid_idx=valid_idx,
+    fit <- .tprf_fit(X, y, Z,
                      pls=pls, closed_form=closed_form,
                      fitalg=fitalg)
 
@@ -99,62 +86,72 @@ TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
                    centered=center,
                    means=X_mean,
                    scaled=scale,
-                   scales=X_sd
-                   ),
+                   scales=X_sd),
               class="t3prf")
 }
 
 ##' @export
-.tprf_fit <- function(X, y, Z, valid_idx, pls, closed_form, fitalg=2) {
+.tprf_fit <- function(X, y, Z, pls, closed_form, fitalg=2) {
 
     if(!is.matrix(X)) X <- as.matrix(X)
     if(!is.matrix(y)) y <- as.matrix(y)
     if(!is.matrix(Z)) Z <- as.matrix(Z)
 
     if(closed_form) {
-        return(.tprf_fit_closed(X, y, Z, pls))
+        return(.tprf_fit_closed(X, y, Z, pls=pls))
     } else {
-        return(.tprf_fit_iter(X, y, Z, valid_idx=valid_idx, pls=pls, fitalg=fitalg))
+        return(.tprf_fit_iter(X, y, Z, pls=pls, fitalg=fitalg))
     }
 }
 
 ##' @export
-.tprf_fit_iter <- function(X, y, Z, valid_idx, pls, fitalg=2) {
+.tprf_fit_iter <- function(X, y, Z, pls, fitalg=2) {
 
-
-    if(is.null(valid_idx)) {
-        valid_idx <- matrix(TRUE, nrow=NROW(X), ncol=NCOL(X))
-    }
-
-    ## Step 1 Time series regression
-    ## Setting proxies with intercept
-    Z_reg <- if(pls) Z else cbind(1, Z)
+    ## Pass 1 Time series regression
+    ##
     ## Preallcating loadings
-    loadings <- mat.or.vec(nr=NCOL(X), nc=NCOL(Z) + 1)
 
-    for (j in 1:NCOL(X)) {
-        idx_j <- valid_idx[, j]
-        loadings[j, ] <- coef(RcppEigen::fastLmPure(Z_reg[idx_j, , drop=FALSE],
-                                                    X[idx_j, j],
-                                                    method=fitalg))
+    loadings <- matrix(NA, nrow=NCOL(X), ncol= NCOL(Z) + as.numeric(!pls))
+    colnames(loadings) <- paste0("phi",
+                                 seq(if(pls) 1 else 0,
+                                     length.out = NCOL(loadings)))
+    if (pls) {
+        for (j in 1:NCOL(X)) {
+            loadings[j, ] <- coef(lm(formula=X[, j] ~ Z - 1,
+                                     na.action=na.exclude, model=FALSE))
+        }
+    } else {
+        for (j in 1:NCOL(X)) {
+            loadings[j, ] <- coef(lm(formula=X[, j] ~ 1 + Z,
+                                     na.action=na.exclude, model=FALSE))
+        }
     }
 
-    ## Step II Cross section regression
-    loadings_reg <- loadings[, -1, drop=FALSE]
-    if(!pls) loadings_reg <- cbind(1, loadings_reg)
-    factors <- mat.or.vec(nr=NROW(y), nc=NCOL(Z) + 1)
+    ## Pass II Cross section regression
+    factors <- matrix(NA, nrow=NROW(X), ncol=NCOL(loadings))
+    colnames(factors) <- paste0("F",
+                                seq(if(pls) 1 else 0,
+                                    length.out = NCOL(factors)))
+    ## Loadings has no intercept in pls
 
-    for (i in 1:NROW(factors)) {
-        idx_i <- valid_idx[i, ]
-        factors[i, ] <- coef(RcppEigen::fastLmPure(loadings_reg[idx_i, , drop=FALSE],
-                                                   X[i, idx_i],
-                                                   method=fitalg))
+    if (pls) {
+        for (i in 1:NROW(factors)) {
+            factors[i, ] <- coef(lm(formula=X[i,] ~ loadings - 1,
+                                    na.action=na.exclude, model=FALSE))
+        }
+    } else {
+        for (i in 1:NROW(factors)) {
+            factors[i, ] <- coef(lm(formula=X[i,] ~ 1 + loadings[, -1],
+                                    na.action=na.exclude, model=FALSE))
+        }
+
     }
-    ## Should Factors be scaled? Seems that factor are unique up to scaling ...
-    ##factors <- scale(factors)
-    ## Step III predictive regression
-    factors_intercept <- cbind(1, factors[, -1, drop=FALSE])
-    predictive_reg <- RcppEigen::fastLmPure(factors_intercept, y, method=fitalg)
+
+    ## Pass III predictive regression
+    ## Factors has no intercept in pls
+    factors_reg <- if(pls) factors else factors[, -1, drop=FALSE]
+    predictive_reg <- lm(formula=y ~ 1 + factors_reg,
+                         na.action=na.exclude, model=FALSE)
     ## Adding loadings and factors to list
     predictive_reg$loadings <- loadings
     predictive_reg$factors <- factors
@@ -190,12 +187,14 @@ TPRF <- function(X, y, Z=NULL, L=NULL, pls=FALSE,
         ## part2 <- solve(t(W_XZ) %*% S_XX %*% W_XZ)
         ## part3 <- t(W_XZ) %*% S_Xy
         ## y_hat <- mean(y) + part1 %*% part2 %*% part3
-
     }
 
     fit <- list()
+    ##rownames(alpha_hat) <- paste0("alpha", 1:NROW(alpha_hat))
     fit$alpha_hat <- alpha_hat
-    fit$fitted.values <- as.vector(y_hat)
+    y_hat <- as.vector(y_hat)
+    names(y_hat) <- as.character(1:length(y_hat))
+    fit$fitted.values <- y_hat
     fit$residuals <- as.vector(y - y_hat)
     return(fit)
 }

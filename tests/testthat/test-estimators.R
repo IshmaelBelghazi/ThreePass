@@ -47,3 +47,20 @@ test_that("closed form/iterative PLS estimation are consistent", {
                  tolerance=tol, scale=1)
 }
           )
+## --------------------------------------------------------------
+test_that("estimator returns error with multivariate target", {
+    K_f <- 1
+    sim <- sim_problem(T, N, K_f, L=1, sigma_g=NULL)
+    X <- sim$X
+    y <- sim$y
+    expect_error(TPRF(X, cbind(y, y), L=1), "y should be univariate")
+})
+## --------------------------------------------------------------
+test_that("estimator returns error when neither Z or L are specified", {
+    K_f <- 1
+    sim <- sim_problem(T, N, K_f, L=1, sigma_g=NULL)
+    X <- sim$X
+    y <- sim$y
+    expect_error(TPRF(X, y),
+                 "please either provide proxies or choose a number of automatic proxies to build")
+})

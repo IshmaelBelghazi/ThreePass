@@ -5,7 +5,7 @@
 \title{Three Pass Regression filter}
 \usage{
 TPRF(X, y, Z = NULL, L = NULL, pls = FALSE, center = FALSE,
-  scale = TRUE, check_missing = FALSE, closed_form = FALSE, fitalg = 2)
+  scale = TRUE, closed_form = FALSE, fitalg = 2)
 }
 \arguments{
 \item{X}{Observations (typically lagged)}
@@ -21,8 +21,6 @@ TPRF(X, y, Z = NULL, L = NULL, pls = FALSE, center = FALSE,
 \item{center}{Center the data?}
 
 \item{scale}{Scale the data}
-
-\item{check_missing}{Checks for missing values}
 
 \item{closed_form}{Use closed form estimation}
 

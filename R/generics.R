@@ -24,18 +24,22 @@ predict.t3prf <- function(object, newdata, fitalg=2, ...) {
         stop("forecasting not supported for closed form estimator")
     } else {
 
-        loadings_reg <- object$loadings[, -1]
-        if(!object$pls) loadings_reg <- cbind(1, loadings_reg)
+        ## Loadings have no intercept in pls
+        if(object$pls) {
+            loadings_reg <- object$loadings
+        } else {
+            loadings_reg <- cbind(1, object$loadings[, -1])
+        }
+
         newdata_factors <- apply(newdata, 1,
                                  function(row) {
-                                     ## Omitting missing values
-                                     valid_idx <- !is.na(row)
-                                     coef(RcppEigen::fastLmPure(loadings_reg[valid_idx, , drop=FALSE],
-                                                                row[valid_idx],
-                                                                method=fitalg))[-1]
+                                     coef(lm(row ~ 0 + loadings_reg,
+                                             na.action=na.exclude,
+                                             model=FALSE))
                                  })
 
-        newdata_factors <- matrix(newdata_factors, ncol=object$L, byrow=TRUE)
+        newdata_factors <- matrix(newdata_factors, nrow=NROW(newdata) , byrow=TRUE)
+        newdata_factors <- if(object$pls) newdata_factors else newdata_factors[, -1]
         ## Adding intercept to newly derived factors
         newdata_factors <- cbind(1, newdata_factors)
         return(newdata_factors %*% coef(object))

@@ -22,18 +22,21 @@
 ##' @export
 corrupt <- function(mat, pollutant,
                     corrupt_prob=1,
-                    n_corrupted=floor((NROW(mat) * NCOL(mat))/2)) {
+                    n_corrupted=floor(lenght(mat)/2)) {
 
     if(n_corrupted <= 0) {
         stop("number of entries to corrupt has to be positive")
     }
-    if(n_corrupted > (NROW(mat) * NCOL(mat))) {
+    if(n_corrupted > length(mat)) {
         stop("number of entries to corrupt than entries")
     }
-    if(!is.function(pollutant)) {
-        cor_fun <- function(x, ...) pollutant
-    } else {
+    if(is.function(pollutant)) {
+        if (!("..." %in% names(formals(pollutant)))) {
+            formals(pollutant) <- c(formals(pollutant), alist(...= ))
+        }
         cor_fun <- pollutant
+    } else {
+        cor_fun <- function(x, ...) pollutant
     }
     ## Sampling indices to corrupt
     corrupt_idx <- (function(x) x[sample(NROW(x), n_corrupted),])(expand.grid(1:NROW(mat), 1:NCOL(mat)))

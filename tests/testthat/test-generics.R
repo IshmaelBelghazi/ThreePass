@@ -44,13 +44,38 @@ test_that("resid generic is consistent", {
 })
 ## --------------------------------------------------------------
 test_that("predict generic is consistent", {
-    if (fit_tprf$scaled) newdata_manual <- t(apply(newdata, 1,
-                                              function(row) row/fit_tprf$scales))
-    newfactor <- apply(newdata_manual, 1, function(row){
+    ## Three pass Regression Filter
+    if (fit_tprf$scaled) {
+        newdata_manual_tprf<- t(apply(newdata, 1,
+                                  function(row) row/fit_tprf$scales))
+    }
+    ## three pass newfactor
+    newfactor_tprf <- apply(newdata_manual_tprf, 1, function(row){
         coef(lm.fit(cbind(1, fit_tprf$loadings[, -1]), row))[-1]
     })
-    forecast_manual <- cbind(1, newfactor) %*% coef(fit_tprf)
-    expect_less_than(abs(predict(fit_tprf, newdata) - forecast_manual), tol)
+    ## three pass manual forecasts
+    forecast_manual_tprf <- cbind(1, newfactor_tprf ) %*% coef(fit_tprf)
+    ## Testing: Three pass forecasts
+    expect_equal(predict(fit_tprf,  newdata), forecast_manual_tprf,
+                 tolerance=tol, scale=1)
+    ## Partial least squares
+    if (fit_pls$scaled) {
+        newdata_manual_pls<- t(apply(newdata, 1,
+                                  function(row) row/fit_tprf$scales))
+    }
+    ## pls new factor
+    newfactor_pls <- apply(newdata_manual_pls, 1, function(row){
+        coef(lm.fit(fit_pls$loadings, row))
+    })
+    ## pls manual forecasts
+    forecast_manual_pls <- cbind(1, newfactor_pls) %*% coef(fit_pls)
+    ## Testing partial least squares
+    expect_equal(predict(fit_pls,  newdata), forecast_manual_pls,
+                 tolerance=tol, scale=1)
 }
           )
 ## ---------------------------------------------------------------
+test_that("predict returns errors when using closed form", {
+    expect_error(predict(TPRF(X, y, L=1, closed_form=TRUE, pls=FALSE), newdata))
+    expect_error(predict(TPRF(X, y, L=1, closed_form=TRUE, pls=TRUE), newdata))
+})
