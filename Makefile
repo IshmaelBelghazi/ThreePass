@@ -175,9 +175,9 @@ check:
 	@echo "devtools::check(check_dir='./checks/')" | $(R_COMMAND)
 ## ** Debug
 valgrind:
-	@echo R -d valgrind --vanilla < test_custom
+	@R -d valgrind --vanilla < test_custom
 cudamemcheck:
-	@echo cuda-memcheck ./test_custom
+	@cuda-memcheck ./test_custom
 ## ** Code Coverage
 coverage:
 	@echo "library(covr);cov <- package_coverage();shine(cov)" | $(R_COMMAND)
@@ -185,5 +185,8 @@ coverage:
 ## *** R lint
 lint/R:
 	@echo "devtools::lint()"
+## ** Benchmarks
+bench:
+	@./inst/benchmarks/run_bench
 ## ** Misc config
 .PHONY: all clean rebuild test test/all diagnostic

@@ -1,0 +1,13 @@
+#!/usr/bin/env Rscript
+print(getwd())
+library(devtools)
+library(microbenchmark)
+load_all(pkg=".")
+## Simulating problem
+T <- 1000
+N <- 100
+K_f <- 1
+L <- 1
+sim <- sim_problem(T, N, K_f, sigma_g=NULL, L=L)
+bench <- microbenchmark(TPRF(sim$X, sim$y, L=L), times=10)
+print(bench)
