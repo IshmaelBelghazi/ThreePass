@@ -2,7 +2,7 @@
 #+AUTHOR: Mohamed Ishmael Diwan Belghazi
 #+EMAIL: ishmael.belghazi@gmail.com
  [[https://travis-ci.org/IshmaelBelghazi/T3PRF][https://travis-ci.org/IshmaelBelghazi/T3PRF.svg]]
-
+ [[https://coveralls.io/repos/IshmaelBelghazi/T3PRF/badge.svg?branch=master]]
 * The Three Pass Regression Filter
 Consider a linear regression model with a large number of predictors.
 If the number of predictors is close to the number of observations or greater then the OLS estimate is poorly behaved or
