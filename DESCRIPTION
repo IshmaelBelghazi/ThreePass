@@ -6,5 +6,4 @@ Description: Implements the Kelly and Pruitt (2014) Three Pass Regression Filter
 Depends: R (>= 3.1.2)
 License: MIT + file LICENSE
 LazyData: true
-Imports: RcppEigen
 Suggests: testthat

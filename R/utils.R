@@ -22,7 +22,7 @@
 ##' @export
 corrupt <- function(mat, pollutant,
                     corrupt_prob=1,
-                    n_corrupted=floor(lenght(mat)/2)) {
+                    n_corrupted=floor(length(mat)/2)) {
 
     if(n_corrupted <= 0) {
         stop("number of entries to corrupt has to be positive")
