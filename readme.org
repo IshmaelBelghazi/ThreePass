@@ -13,9 +13,9 @@ by a limited number of latent factors. \\
 Principal component regression (PCR), where the factors are some of the principal
 components of the predictors is an example of such an approach. \\
 
-In context of forecasting a criticism of PCR would that the extracted factors
+In the context of forecasting a criticism of PCR would that the extracted factors
 are not chosen with respect to target. The factors (principal components), are
-selected to minimize the reconstruction error but correlation with the target
+selected to minimize the reconstruction error but the correlation with the target
 is not considered.
 
 By assuming that the same latent factors explain both the target and the predictors, The Three Pass Regression
