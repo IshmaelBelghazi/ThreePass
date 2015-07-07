@@ -6,5 +6,6 @@ test_custom
 ^checks$
 ^scripts$
 ^\.travis\.yml$
+^MakeR$
 ^misc$
 readme.org
